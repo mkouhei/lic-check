@@ -1,0 +1,5 @@
+[run]
+include =
+    lic_check/*
+omit =
+    lic_check/tests/*
