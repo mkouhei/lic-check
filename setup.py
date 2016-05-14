@@ -45,7 +45,6 @@ classifiers = [
     "Programming Language :: Python :: 3.4",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
 
@@ -53,7 +52,8 @@ long_description = (
     read_content("README.rst") +
     read_content(os.path.join("docs/source", "CHANGELOG.rst")))
 
-requires = ['setuptools']
+requires = ['setuptools',
+            'pyquery']
 
 extras_require = {
     'reST': ['Sphinx'],
