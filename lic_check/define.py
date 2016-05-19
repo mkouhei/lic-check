@@ -3,7 +3,59 @@
 from pyquery.pyquery import PyQuery
 
 
+class Segment(object):
+    """License Segmentation.
+
+    * Software Licenses
+    * Documentation licenses
+    * Other works
+    """
+
+    def __init__(self, element):
+        """initialize."""
+        self.name = element.get('id')
+        self.description = element.text
+
+    def __repr__(self):
+        """representaion."""
+        return self.name
+
+
+class Category(object):
+    """License Category.
+
+    * GPL compatible licenses
+    * GPL incompatible licenses
+    * Nonfree Software licenses
+    """
+
+    def __init__(self, element):
+        """initialize."""
+        self.name = element.get('href').replace('#', '')
+        self.description = element.text
+        self.segment = None
+
+    def __repr__(self):
+        """representaion."""
+        return self.name
+
+
 class License(object):
+    """License."""
+
+    def __init__(self, element):
+        """initialize."""
+        self.name = element.get('id')
+        self.description = element.text
+        self.category = None
+        self.segment = None
+
+    def __repr__(self):
+        """representaion."""
+        return self.name
+
+
+class Parse(object):
     """definition verious licences and comments about them."""
 
     def __init__(self, data):
@@ -15,11 +67,11 @@ class License(object):
 
         >>> with open('lic_check/license.html') as f:
         ...     data = f.read()
-        >>> l = License(data)
-        >>> l.segments()
-        ['SoftwareLicenses', 'DocumentationLicenses', 'OtherLicenses']
+        >>> p = Parse(data)
+        >>> p.segments()
+        [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
         """
-        return [i.get('id') for i in self.html.find('.big-section h3')
+        return [Segment(i) for i in self.html.find('.big-section h3')
                 .filter(lambda i: i != 0)]
 
     def categories(self, segment):
@@ -27,15 +79,15 @@ class License(object):
 
         >>> with open('lic_check/license.html') as f:
         ...     data = f.read()
-        >>> l = License(data)
-        >>> [i.replace('Licenses', '') for i in l.categories(l.segments()[0])]
-        ['GPLCompatible', 'GPLIncompatible', 'NonFreeSoftware']
-        >>> l.categories(l.segments()[1])
-        ['FreeDocumentationLicenses', 'NonFreeDocumentationLicenses']
-        >>> l.categories(l.segments()[2])
-        ['OtherLicenses', 'Fonts', 'OpinionLicenses', 'Designs']
+        >>> p = Parse(data)
+        >>> len([i for i in p.categories(p.segments()[0])])
+        3
+        >>> p.categories(p.segments()[1])
+        [FreeDocumentationLicenses, NonFreeDocumentationLicenses]
+        >>> p.categories(p.segments()[2])
+        [OtherLicenses, Fonts, OpinionLicenses, Designs]
         """
-        return [i.get('href').replace('#', '')
+        return [Category(i)
                 for i in self.html.find('.toc ul li a')
                 .filter(lambda i, this: PyQuery(this)
                         .attr('href') == '#{0}'.format(segment))
@@ -46,22 +98,22 @@ class License(object):
 
         >>> with open('lic_check/license.html') as f:
         ...     data = f.read()
-        >>> l = License(data)
-        >>> l.segments()[0]
-        'SoftwareLicenses'
-        >>> l.categories(l.segments()[0])[0]
-        'GPLCompatibleLicenses'
-        >>> len(l.licenses(l.categories(l.segments()[0])[0]))
-        59
-        >>> l.categories(l.segments()[0])[1]
-        'GPLIncompatibleLicenses'
-        >>> len(l.licenses(l.categories(l.segments()[0])[1]))
+        >>> p = Parse(data)
+        >>> p.segments()[0]
+        SoftwareLicenses
+        >>> p.categories(p.segments()[0])[0]
+        GPLCompatibleLicenses
+        >>> len(p.licenses(p.categories(p.segments()[0])[0]))
+        50
+        >>> p.categories(p.segments()[0])[1]
+        GPLIncompatibleLicenses
+        >>> len(p.licenses(p.categories(p.segments()[0])[1]))
         40
-        >>> len(l.licenses(l.categories(l.segments()[0])[2]))
-        35
+        >>> len(p.licenses(p.categories(p.segments()[0])[2]))
+        33
         """
-        return [i.get('id')
+        return [License(i)
                 for i in (self.html
                           .find('.big-subsection h4#{0}'.format(category))
                           .parent().next_all('dl').eq(0).children('dt a'))
-                if i.get('id')]
+                if i.get('id') and i.text]
