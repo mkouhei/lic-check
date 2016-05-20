@@ -13,7 +13,9 @@ class Segment(object):
 
     def __init__(self, element):
         """initialize."""
+        #: segment name
         self.name = element.get('id')
+        #: description
         self.description = element.text
 
     def __repr__(self):
@@ -31,8 +33,11 @@ class Category(object):
 
     def __init__(self, element, segment):
         """initialize."""
+        #: category name
         self.name = element.get('href').replace('#', '')
+        #: description
         self.description = element.text
+        #: belonged segment
         self.segment = segment
 
     def __repr__(self):
@@ -45,9 +50,13 @@ class License(object):
 
     def __init__(self, element, category):
         """initialize."""
+        #: license name
         self.name = element.get('id')
+        #: description
         self.description = element.text
+        #: belonged category
         self.category = category
+        #: belonged segment
         self.segment = self.category.segment
 
     def __repr__(self):
