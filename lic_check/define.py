@@ -97,10 +97,13 @@ class Parse(object):
         [OtherLicenses, Fonts, OpinionLicenses, Designs]
         """
         return [Category(i, segment)
-                for i in self.html.find('.toc ul li a')
+                for i in self.__retrieve_cat_elem(segment)]
+
+    def __retrieve_cat_elem(self, segment):
+        return (self.html.find('.toc ul li a')
                 .filter(lambda i, this: PyQuery(this)
                         .attr('href') == '#{0}'.format(segment))
-                .siblings('ul').find('a')]
+                .siblings('ul').find('a'))
 
     def licenses(self, category):
         """licenses.
@@ -127,7 +130,9 @@ class Parse(object):
         33
         """
         return [License(i, category)
-                for i in (self.html
-                          .find('.big-subsection h4#{0}'.format(category))
-                          .parent().next_all('dl').eq(0).children('dt a'))
+                for i in self.__retrieve_lic_elem(category)
                 if i.get('id') and i.text]
+
+    def __retrieve_lic_elem(self, category):
+        return (self.html.find('.big-subsection h4#{0}'.format(category))
+                .parent().next_all('dl').eq(0).children('dt a'))
