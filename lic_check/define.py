@@ -29,11 +29,11 @@ class Category(object):
     * Nonfree Software licenses
     """
 
-    def __init__(self, element):
+    def __init__(self, element, segment):
         """initialize."""
         self.name = element.get('href').replace('#', '')
         self.description = element.text
-        self.segment = None
+        self.segment = segment
 
     def __repr__(self):
         """representaion."""
@@ -43,12 +43,12 @@ class Category(object):
 class License(object):
     """License."""
 
-    def __init__(self, element):
+    def __init__(self, element, category):
         """initialize."""
         self.name = element.get('id')
         self.description = element.text
-        self.category = None
-        self.segment = None
+        self.category = category
+        self.segment = self.category.segment
 
     def __repr__(self):
         """representaion."""
@@ -87,7 +87,7 @@ class Parse(object):
         >>> p.categories(p.segments()[2])
         [OtherLicenses, Fonts, OpinionLicenses, Designs]
         """
-        return [Category(i)
+        return [Category(i, segment)
                 for i in self.html.find('.toc ul li a')
                 .filter(lambda i, this: PyQuery(this)
                         .attr('href') == '#{0}'.format(segment))
@@ -99,20 +99,25 @@ class Parse(object):
         >>> with open('lic_check/license.html') as f:
         ...     data = f.read()
         >>> p = Parse(data)
-        >>> p.segments()[0]
-        SoftwareLicenses
-        >>> p.categories(p.segments()[0])[0]
-        GPLCompatibleLicenses
-        >>> len(p.licenses(p.categories(p.segments()[0])[0]))
+        >>> sw_lic = p.segments()[0]
+        >>> gpl_compat_lic = p.categories(sw_lic)[0]
+        >>> gpl_compat_lics = p.licenses(gpl_compat_lic)
+        >>> len(gpl_compat_lics)
         50
-        >>> p.categories(p.segments()[0])[1]
-        GPLIncompatibleLicenses
-        >>> len(p.licenses(p.categories(p.segments()[0])[1]))
+        >>> gpl_compat_lics[0]
+        GNUGPLv3
+        >>> gpl_compat_lics[0].category
+        GPLCompatibleLicenses
+        >>> gpl_compat_lics[0].segment
+        SoftwareLicenses
+        >>> gpl_incompat_lic = p.categories(p.segments()[0])[1]
+        >>> len(p.licenses(gpl_incompat_lic))
         40
-        >>> len(p.licenses(p.categories(p.segments()[0])[2]))
+        >>> nonfree_lic = p.categories(sw_lic)[2]
+        >>> len(p.licenses(nonfree_lic))
         33
         """
-        return [License(i)
+        return [License(i, category)
                 for i in (self.html
                           .find('.big-subsection h4#{0}'.format(category))
                           .parent().next_all('dl').eq(0).children('dt a'))
