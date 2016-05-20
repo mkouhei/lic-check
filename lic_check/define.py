@@ -17,6 +17,7 @@ class Segment(object):
         self.name = element.get('id')
         #: description
         self.description = element.text
+        self.categories = []
 
     def __repr__(self):
         """representaion."""
@@ -39,6 +40,7 @@ class Category(object):
         self.description = element.text
         #: belonged segment
         self.segment = segment
+        self.licenses = []
 
     def __repr__(self):
         """representaion."""
@@ -64,36 +66,51 @@ class License(object):
         return self.name
 
 
-class Parse(object):
-    """definition verious licences and comments about them."""
+class Classifier(object):
+    """classify verious licences.
 
-    def __init__(self, data):
+    >>> c = Classifier()
+    >>> c.segments
+    [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
+    >>> c.segments[0].categories
+    [GPLCompatibleLicenses, GPLIncompatibleLicenses, NonFreeSoftwareLicenses]
+    >>> len(c.segments[0].categories[0].licenses)
+    50
+    """
+
+    default_data = 'lic_check/license.html'
+
+    def __init__(self):
         """initialize."""
+        with open(self.default_data) as fobj:
+            data = fobj.read()
         self.html = PyQuery(data)
+        self.segments = self._parse()
 
-    def segments(self):
-        """segments.
+    def _parse(self):
+        """parse license html."""
+        segments = []
+        for segment in self._segments():
+            segment.categories = self.categories(segment)
+            for category in segment.categories:
+                category.licenses = self.licenses(category)
+            segments.append(segment)
+        return segments
 
-        >>> with open('lic_check/license.html') as f:
-        ...     data = f.read()
-        >>> p = Parse(data)
-        >>> p.segments()
-        [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
-        """
+    def _segments(self):
+        """segments."""
         return [Segment(i) for i in self.html.find('.big-section h3')
                 .filter(lambda i: i != 0)]
 
     def categories(self, segment):
         """categories.
 
-        >>> with open('lic_check/license.html') as f:
-        ...     data = f.read()
-        >>> p = Parse(data)
-        >>> len([i for i in p.categories(p.segments()[0])])
+        >>> c = Classifier()
+        >>> len([i for i in c.categories(c.segments[0])])
         3
-        >>> p.categories(p.segments()[1])
+        >>> c.categories(c.segments[1])
         [FreeDocumentationLicenses, NonFreeDocumentationLicenses]
-        >>> p.categories(p.segments()[2])
+        >>> c.categories(c.segments[2])
         [OtherLicenses, Fonts, OpinionLicenses, Designs]
         """
         return [Category(i, segment)
@@ -108,12 +125,10 @@ class Parse(object):
     def licenses(self, category):
         """licenses.
 
-        >>> with open('lic_check/license.html') as f:
-        ...     data = f.read()
-        >>> p = Parse(data)
-        >>> sw_lic = p.segments()[0]
-        >>> gpl_compat_lic = p.categories(sw_lic)[0]
-        >>> gpl_compat_lics = p.licenses(gpl_compat_lic)
+        >>> c = Classifier()
+        >>> sw_lic = c.segments[0]
+        >>> gpl_compat_lic = c.categories(sw_lic)[0]
+        >>> gpl_compat_lics = c.licenses(gpl_compat_lic)
         >>> len(gpl_compat_lics)
         50
         >>> gpl_compat_lics[0]
@@ -122,11 +137,11 @@ class Parse(object):
         GPLCompatibleLicenses
         >>> gpl_compat_lics[0].segment
         SoftwareLicenses
-        >>> gpl_incompat_lic = p.categories(p.segments()[0])[1]
-        >>> len(p.licenses(gpl_incompat_lic))
+        >>> gpl_incompat_lic = c.categories(c.segments[0])[1]
+        >>> len(c.licenses(gpl_incompat_lic))
         40
-        >>> nonfree_lic = p.categories(sw_lic)[2]
-        >>> len(p.licenses(nonfree_lic))
+        >>> nonfree_lic = c.categories(sw_lic)[2]
+        >>> len(c.licenses(nonfree_lic))
         33
         """
         return [License(i, category)
