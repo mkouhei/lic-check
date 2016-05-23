@@ -2,8 +2,7 @@
  lic-check
 ===========
 
-TODO: Rewrite me. Append your package's long description.
-
+Provides FOSS compatibile licenses when give license to a new project.
 
 Status
 ======
@@ -22,12 +21,12 @@ Status
 Requirements
 ============
 
-* Python 2.7 or Python 3.3 over or PyPy 2.4.0 over
+* Python 2.7 or Python 3.3 over
 
 Features
 ========
 
-* ToDo: Rewrite me.
+* License classifiers
 
 Setup
 =====
@@ -41,13 +40,10 @@ Setup
 Usage
 =====
 
-ToDo: Rewrite me.
-
 ::
 
   $ python
-  >>> import lic_check
-  >>> lic_check.sample.hello()
-  'hello'
-  >>>
-
+  >>> from lic_check.classifier import Classifier
+  >>> c = Classifier()
+  >>> c.segments
+  [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
