@@ -17,7 +17,6 @@ class Segment(object):
         self.name = element.get('id')
         #: description
         self.description = element.text
-        self.categories = []
 
     def __repr__(self):
         """representaion."""
