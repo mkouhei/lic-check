@@ -98,8 +98,8 @@ class Classifier(object):
 
     def _segments(self):
         """segments."""
-        return [Segment(i) for i in self.html.find('.big-section h3')
-                .filter(lambda i: i != 0)]
+        return (Segment(i) for i in self.html.find('.big-section h3')
+                .filter(lambda i: i != 0))
 
     def categories(self, segment):
         """categories.
