@@ -100,7 +100,7 @@ class Classifier(object):
         return (Segment(i) for i in self.html.find('.big-section h3')
                 .filter(lambda i: i != 0))
 
-    def categories(self, segment):
+    def categories(self, segment=None):
         """categories.
 
         >>> c = Classifier()
@@ -110,9 +110,15 @@ class Classifier(object):
         [FreeDocumentationLicenses, NonFreeDocumentationLicenses]
         >>> c.categories(c.segments[2])
         [OtherLicenses, Fonts, OpinionLicenses, Designs]
+        >>> len(c.categories().items())
+        3
         """
-        return [Category(i, segment)
-                for i in self.__retrieve_cat_elem(segment)]
+        if segment:
+            return [Category(i, segment)
+                    for i in self.__retrieve_cat_elem(segment)]
+        else:
+            return {'{0}'.format(_seg): self.categories(_seg)
+                    for _seg in self.segments}
 
     def __retrieve_cat_elem(self, segment):
         return (self.html.find('.toc ul li a')
@@ -120,7 +126,7 @@ class Classifier(object):
                         .attr('href') == '#{0}'.format(segment))
                 .siblings('ul').find('a'))
 
-    def licenses(self, category):
+    def licenses(self, category=None):
         """licenses.
 
         >>> c = Classifier()
@@ -141,10 +147,19 @@ class Classifier(object):
         >>> nonfree_lic = c.categories(sw_lic)[2]
         >>> len(c.licenses(nonfree_lic))
         33
+        >>> len(c.licenses().items())
+        9
         """
-        return [License(i, category)
-                for i in self.__retrieve_lic_elem(category)
-                if i.get('id') and i.text]
+        if category:
+            return [License(i, category)
+                    for i in self.__retrieve_lic_elem(category)
+                    if i.get('id') and i.text]
+        else:
+            categories = []
+            for i in self.categories().values():
+                categories += i
+            return {'{0}'.format(cat): self.licenses(cat)
+                    for cat in categories}
 
     def __retrieve_lic_elem(self, category):
         return (self.html.find('.big-subsection h4#{0}'.format(category))
