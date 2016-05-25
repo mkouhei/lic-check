@@ -47,3 +47,4 @@ Usage
   >>> c = Classifier()
   >>> c.segments
   [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
+
