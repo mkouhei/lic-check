@@ -39,7 +39,6 @@ class Category(object):
         self.description = element.text
         #: belonged segment
         self.segment = segment
-        self.licenses = []
 
     def __repr__(self):
         """representaion."""
