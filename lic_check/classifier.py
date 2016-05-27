@@ -1,5 +1,4 @@
 """lic_check.define."""
-
 from pyquery.pyquery import PyQuery
 
 
@@ -72,8 +71,8 @@ class Classifier(object):
     [SoftwareLicenses, DocumentationLicenses, OtherLicenses]
     >>> c.segments[0].categories
     [GPLCompatibleLicenses, GPLIncompatibleLicenses, NonFreeSoftwareLicenses]
-    >>> len(c.segments[0].categories[0].licenses)
-    50
+    >>> c.segments[0].categories[0].licenses
+    [GNUGPLv3, GPLv2, LGPLv3, LGPLv2.1, AGPLv3.0, ...
     """
 
     default_data = 'lic_check/license.html'
@@ -104,14 +103,16 @@ class Classifier(object):
         """categories.
 
         >>> c = Classifier()
-        >>> len([i for i in c.categories(c.segments[0])])
-        3
+        >>> c.categories(c.segments[0])
+        [GPLCompatibleLicenses, GPLIncompatibleLicenses, NonFreeSoftware...
         >>> c.categories(c.segments[1])
         [FreeDocumentationLicenses, NonFreeDocumentationLicenses]
         >>> c.categories(c.segments[2])
         [OtherLicenses, Fonts, OpinionLicenses, Designs]
-        >>> len(c.categories().items())
-        3
+        >>> c.categories().get('SoftwareLicenses')
+        [GPLCompatibleLicenses, GPLIncompatibleLicenses, NonFreeSoftware...
+        >>> c.categories().get('DocumentationLicenses')
+        [FreeDocumentationLicenses, NonFreeDocumentationLicenses]
         """
         if segment:
             return [Category(i, segment)
@@ -142,13 +143,13 @@ class Classifier(object):
         >>> gpl_compat_lics[0].segment
         SoftwareLicenses
         >>> gpl_incompat_lic = c.categories(c.segments[0])[1]
-        >>> len(c.licenses(gpl_incompat_lic))
-        40
+        >>> c.licenses(gpl_incompat_lic)
+        [AGPLv1.0, AcademicFreeLicense, apache1.1, ...
         >>> nonfree_lic = c.categories(sw_lic)[2]
-        >>> len(c.licenses(nonfree_lic))
-        33
-        >>> len(c.licenses().items())
-        9
+        >>> c.licenses(nonfree_lic)
+        [NoLicense, Aladdin, apsl1, ...
+        >>> c.licenses().get('GPLCompatibleLicenses')
+        [GNUGPLv3, GPLv2, LGPLv3, LGPLv2.1, AGPLv3.0, ...
         """
         if category:
             return [License(i, category)
